@@ -250,8 +250,9 @@ export const ImpurityForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // SECTION 1 VALIDATION: Chemical & Impurity Identification
     if (!form.name.trim()) {
-      toast.error('Impurity name is required.');
+      toast.error('Impurity standard name is required (Section 1).');
       return;
     }
 
@@ -261,17 +262,77 @@ export const ImpurityForm = () => {
       return;
     }
 
+    const selectedCategory = form.category || mainProduct?.category?._id || mainProduct?.category;
+    if (!selectedCategory) {
+      toast.error('Category destination is required (Section 1).');
+      return;
+    }
+
+    if (!form.availability?.trim()) {
+      toast.error('Commercial availability is required (Section 1).');
+      return;
+    }
+
+    if (!imageFile && !imagePreview && !form.image) {
+      toast.error('Chemical structure image is required (Section 1).');
+      return;
+    }
+
+    // SECTION 2 VALIDATION: Technical & Chemical Specifications
+    if (!specifications.casNumber?.trim()) {
+      toast.error('CAS Number is required in Technical Specifications (Section 2).');
+      return;
+    }
+    if (!specifications.catalogueNumber?.trim()) {
+      toast.error('Catalogue Number is required in Technical Specifications (Section 2).');
+      return;
+    }
+    if (!specifications.purity?.trim()) {
+      toast.error('Purity is required in Technical Specifications (Section 2).');
+      return;
+    }
+    if (!specifications.molecularFormula?.trim()) {
+      toast.error('Molecular Formula is required in Technical Specifications (Section 2).');
+      return;
+    }
+    if (!specifications.molecularWeight?.trim()) {
+      toast.error('Molecular Weight is required in Technical Specifications (Section 2).');
+      return;
+    }
+    if (!specifications.appearance?.trim()) {
+      toast.error('Physical Appearance is required in Technical Specifications (Section 2).');
+      return;
+    }
+    if (!specifications.storage?.trim()) {
+      toast.error('Storage Conditions are required in Technical Specifications (Section 2).');
+      return;
+    }
+    if (!specifications.shippingConditions?.trim()) {
+      toast.error('Shipping Conditions are required in Technical Specifications (Section 2).');
+      return;
+    }
+    if (!specifications.iupacName?.trim()) {
+      toast.error('IUPAC Chemical Name is required in Technical Specifications (Section 2).');
+      return;
+    }
+
+    // SECTION 3 VALIDATION: Commercial Quantities & Pricing Tiers
+    const cleanedPricing = pricingTiers
+      .filter((t) => t.size && String(t.size).trim() && t.price !== '' && t.price !== null && !isNaN(Number(t.price)) && Number(t.price) >= 0)
+      .map((t) => ({
+        size: t.size.trim(),
+        price: Number(t.price),
+        description: t.description?.trim() || '',
+        isBestValue: Boolean(t.isBestValue),
+      }));
+
+    if (cleanedPricing.length === 0) {
+      toast.error('At least one commercial pricing tier (Unit Size & Price) is required (Section 3).');
+      return;
+    }
+
     try {
       setSubmitting(true);
-
-      const cleanedPricing = pricingTiers
-        .filter((t) => t.size && t.price !== '')
-        .map((t) => ({
-          size: t.size.trim(),
-          price: Number(t.price),
-          description: t.description?.trim() || '',
-          isBestValue: Boolean(t.isBestValue),
-        }));
 
       let finalImageUrl = form.image;
 
@@ -282,11 +343,23 @@ export const ImpurityForm = () => {
           const uploadedUrl = imgUploadRes?.data?.url || imgUploadRes?.url;
           if (uploadedUrl) {
             finalImageUrl = uploadedUrl;
+          } else {
+            toast.error('Failed to get uploaded structure image URL.');
+            setSubmitting(false);
+            return;
           }
         } catch (imgErr) {
           console.error('Error uploading chemical structure image to Cloudinary:', imgErr);
-          toast.error('Failed to upload structure image file.');
+          toast.error(imgErr.response?.data?.message || 'Failed to upload structure image file.');
+          setSubmitting(false);
+          return;
         }
+      }
+
+      if (!finalImageUrl) {
+        toast.error('Chemical structure image is required.');
+        setSubmitting(false);
+        return;
       }
 
       const parsedAltCas = typeof specifications.alternateCas === 'string'
@@ -434,8 +507,8 @@ export const ImpurityForm = () => {
       {/* SECTION 1: Core Impurity Identification */}
       <Card>
         <CardHeader
-          title="1. Chemical & Impurity Identification"
-          subtitle="Impurity standard name, chemical structure image, and commercial availability"
+          title="1. Chemical & Impurity Identification *"
+          subtitle="Impurity standard name, chemical structure image, and commercial availability (All required)"
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -496,9 +569,10 @@ export const ImpurityForm = () => {
           {/* Commercial Availability */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              Commercial Availability
+              Commercial Availability *
             </label>
             <select
+              required
               value={form.availability}
               onChange={(e) => setForm({ ...form, availability: e.target.value })}
               className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-hidden focus:border-emerald-500 cursor-pointer"
@@ -511,12 +585,19 @@ export const ImpurityForm = () => {
 
           {/* Chemical Structure Image Upload */}
           <div className="md:col-span-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              Chemical Structure Image
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 flex items-center justify-between">
+              <span>Chemical Structure Image *</span>
+              <span className="text-[10px] text-amber-700 font-semibold normal-case">
+                Compulsory chemical structure
+              </span>
             </label>
             <div className="flex flex-col sm:flex-row items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
               {/* Preview Box */}
-              <div className="w-32 h-32 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shrink-0 shadow-2xs relative group">
+              <div
+                className={`w-32 h-32 rounded-xl bg-white border ${
+                  !imagePreview ? 'border-amber-300 ring-2 ring-amber-100' : 'border-slate-200'
+                } flex items-center justify-center overflow-hidden shrink-0 shadow-2xs relative group`}
+              >
                 {imagePreview ? (
                   <>
                     <img
@@ -536,7 +617,9 @@ export const ImpurityForm = () => {
                 ) : (
                   <div className="flex flex-col items-center justify-center text-slate-400 p-2 text-center">
                     <ImageIcon className="w-8 h-8 stroke-1 text-slate-300 mb-1" />
-                    <span className="text-[10px] font-medium leading-tight">No structure image</span>
+                    <span className="text-[10px] font-semibold text-amber-700 leading-tight">
+                      Structure Required *
+                    </span>
                   </div>
                 )}
               </div>
@@ -546,7 +629,7 @@ export const ImpurityForm = () => {
                 <div className="flex flex-wrap items-center gap-3">
                   <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all cursor-pointer shadow-2xs">
                     <Upload className="w-4 h-4 text-emerald-600" />
-                    <span>{imagePreview ? 'Change Image File' : 'Upload Image File'}</span>
+                    <span>{imagePreview ? 'Change Image File' : 'Upload Image File *'}</span>
                     <input
                       type="file"
                       accept="image/png,image/jpeg,image/webp,image/svg+xml"
@@ -580,7 +663,12 @@ export const ImpurityForm = () => {
                       </span>
                     )}
                   </div>
-                ) : null}
+                ) : (
+                  <div className="text-xs text-amber-700 font-medium flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>Chemical structure image is compulsory when adding an impurity.</span>
+                  </div>
+                )}
 
                 <p className="text-[11px] text-slate-500">
                   Supports PNG, JPG, WEBP, or SVG (max 25MB). Uploaded structures are automatically stored on Cloudinary.
@@ -607,17 +695,18 @@ export const ImpurityForm = () => {
       {/* SECTION 2: Technical & Chemical Specifications */}
       <Card>
         <CardHeader
-          title="2. Technical & Chemical Specifications"
-          subtitle="CAS number, catalogue number, molecular formula, weight, and purity"
+          title="2. Technical & Chemical Specifications *"
+          subtitle="CAS number, catalogue number, molecular formula, weight, purity, appearance, and IUPAC name (Compulsory)"
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              CAS Number
+              CAS Number *
             </label>
             <input
               type="text"
+              required
               value={specifications.casNumber}
               onChange={(e) => setSpecifications({ ...specifications, casNumber: e.target.value })}
               placeholder="e.g. 134523-03-8"
@@ -628,9 +717,9 @@ export const ImpurityForm = () => {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                Alternate CAS
+                Alternate CAS (Optional)
               </label>
-              <span className="text-[10px] text-emerald-700 font-semibold uppercase tracking-wider">
+              <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
                 Comma-separated
               </span>
             </div>
@@ -645,10 +734,11 @@ export const ImpurityForm = () => {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              Catalogue Number
+              Catalogue Number *
             </label>
             <input
               type="text"
+              required
               value={specifications.catalogueNumber}
               onChange={(e) => setSpecifications({ ...specifications, catalogueNumber: e.target.value })}
               placeholder="e.g. GLP-ATO-001"
@@ -658,10 +748,11 @@ export const ImpurityForm = () => {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              Purity
+              Purity *
             </label>
             <input
               type="text"
+              required
               value={specifications.purity}
               onChange={(e) => setSpecifications({ ...specifications, purity: e.target.value })}
               placeholder=">98.0% (HPLC)"
@@ -671,10 +762,11 @@ export const ImpurityForm = () => {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              Molecular Formula
+              Molecular Formula *
             </label>
             <input
               type="text"
+              required
               value={specifications.molecularFormula}
               onChange={(e) => setSpecifications({ ...specifications, molecularFormula: e.target.value })}
               placeholder="e.g. C33H35FN2O5"
@@ -684,10 +776,11 @@ export const ImpurityForm = () => {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              Molecular Weight (g/mol)
+              Molecular Weight (g/mol) *
             </label>
             <input
               type="text"
+              required
               value={specifications.molecularWeight}
               onChange={(e) => setSpecifications({ ...specifications, molecularWeight: e.target.value })}
               placeholder="e.g. 558.64"
@@ -697,10 +790,11 @@ export const ImpurityForm = () => {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              Physical Appearance
+              Physical Appearance *
             </label>
             <input
               type="text"
+              required
               value={specifications.appearance}
               onChange={(e) => setSpecifications({ ...specifications, appearance: e.target.value })}
               placeholder="White to Off-White Solid"
@@ -710,10 +804,11 @@ export const ImpurityForm = () => {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              Storage Conditions
+              Storage Conditions *
             </label>
             <input
               type="text"
+              required
               value={specifications.storage}
               onChange={(e) => setSpecifications({ ...specifications, storage: e.target.value })}
               placeholder="Store at 2°C to 8°C in dark, dry place"
@@ -723,10 +818,11 @@ export const ImpurityForm = () => {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              Shipping Conditions
+              Shipping Conditions *
             </label>
             <input
               type="text"
+              required
               value={specifications.shippingConditions}
               onChange={(e) => setSpecifications({ ...specifications, shippingConditions: e.target.value })}
               placeholder="e.g. Ambient, with blue ice pack"
@@ -736,7 +832,7 @@ export const ImpurityForm = () => {
 
           <div className="sm:col-span-2 md:col-span-3">
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              Synonyms / Alternative Names
+              Synonyms / Alternative Names (Optional)
             </label>
             <input
               type="text"
@@ -749,10 +845,11 @@ export const ImpurityForm = () => {
 
           <div className="sm:col-span-2 md:col-span-3">
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              IUPAC Chemical Name
+              IUPAC Chemical Name *
             </label>
             <input
               type="text"
+              required
               value={specifications.iupacName}
               onChange={(e) => setSpecifications({ ...specifications, iupacName: e.target.value })}
               placeholder="Full systematic IUPAC chemical nomenclature..."
@@ -765,8 +862,8 @@ export const ImpurityForm = () => {
       {/* SECTION 3: Pricing Tiers */}
       <Card>
         <CardHeader
-          title="3. Commercial Quantities & Pricing Tiers"
-          subtitle="Configure unit sizes (mg, g) and commercial pricing for client quotes"
+          title="3. Commercial Quantities & Pricing Tiers *"
+          subtitle="Configure unit sizes (mg, g) and commercial pricing for client quotes (At least 1 tier required)"
           action={
             <Button size="sm" variant="secondary" icon={Plus} onClick={addPricingTier}>
               Add Tier
@@ -847,8 +944,16 @@ export const ImpurityForm = () => {
           ))}
 
           {pricingTiers.length === 0 && (
-            <div className="text-center py-6 text-slate-400 text-xs border border-dashed border-slate-200 rounded-xl">
-              No pricing tiers configured. Click "Add Tier" to create standard sizes.
+            <div className="text-center py-6 text-amber-800 text-xs border border-dashed border-amber-300 bg-amber-50/50 rounded-xl flex flex-col items-center justify-center gap-2">
+              <AlertCircle className="w-5 h-5 text-amber-600" />
+              <span className="font-semibold">At least one commercial pricing tier is compulsory.</span>
+              <button
+                type="button"
+                onClick={addPricingTier}
+                className="text-xs text-emerald-700 font-bold underline hover:text-emerald-800 cursor-pointer"
+              >
+                Click here to add a pricing tier
+              </button>
             </div>
           )}
         </div>

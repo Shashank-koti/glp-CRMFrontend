@@ -11,6 +11,8 @@ import {
   ExternalLink,
   Loader2,
   AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { mainProductService } from '../api/mainProductService';
 import { categoryService } from '../api/categoryService';
@@ -28,6 +30,10 @@ export const MainProducts = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(50);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Create / Edit Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,9 +41,7 @@ export const MainProducts = () => {
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     heading: '',
-    p_link: '',
     category: '',
-    content: '',
     status: true,
   });
 
@@ -59,7 +63,11 @@ export const MainProducts = () => {
   const fetchMainProducts = async () => {
     try {
       setLoading(true);
-      const params = { limit: 100 };
+      const params = {
+        page,
+        limit,
+        sort: 'heading',
+      };
       if (search.trim()) {
         params.search = search.trim();
       }
@@ -67,6 +75,9 @@ export const MainProducts = () => {
       const res = await mainProductService.getMainProducts(params);
       if (res.success && Array.isArray(res.data)) {
         setMainProducts(res.data);
+        const total = res.pagination?.total ?? res.data.length;
+        setTotalCount(total);
+        setTotalPages(res.pagination?.pages || Math.ceil(total / limit) || 1);
       }
     } catch (err) {
       console.error('Error fetching main products:', err);
@@ -82,11 +93,25 @@ export const MainProducts = () => {
 
   useEffect(() => {
     fetchMainProducts();
-  }, []);
+  }, [page, limit]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    setPage(1);
     fetchMainProducts();
+  };
+
+  const getPaginationItems = () => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (page <= 4) {
+      return [1, 2, 3, 4, 5, '...', totalPages];
+    }
+    if (page >= totalPages - 3) {
+      return [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, '...', page - 1, page, page + 1, '...', totalPages];
   };
 
   const openCreateModal = () => {
@@ -96,9 +121,7 @@ export const MainProducts = () => {
     ) || categories[0];
     setForm({
       heading: '',
-      p_link: '',
       category: apiCat?._id || '',
-      content: '',
       status: true,
     });
     setIsModalOpen(true);
@@ -108,9 +131,7 @@ export const MainProducts = () => {
     setEditingProduct(prod);
     setForm({
       heading: prod.heading || '',
-      p_link: prod.p_link || '',
       category: prod.category?._id || prod.category || '',
-      content: prod.content || '',
       status: prod.status !== false,
     });
     setIsModalOpen(true);
@@ -214,10 +235,7 @@ export const MainProducts = () => {
               variant="ghost"
               onClick={() => {
                 setSearch('');
-                // re-fetch all
-                mainProductService.getMainProducts({ limit: 100 }).then(res => {
-                  if (res.success && Array.isArray(res.data)) setMainProducts(res.data);
-                });
+                setPage(1);
               }}
             >
               Clear
@@ -225,6 +243,40 @@ export const MainProducts = () => {
           )}
         </form>
       </Card>
+
+      {/* Stats & Items Per Page Selector */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-500 font-medium px-1">
+        <div>
+          Showing{' '}
+          <span className="font-semibold text-slate-900">
+            {totalCount === 0 ? 0 : (page - 1) * limit + 1}
+          </span>{' '}
+          to{' '}
+          <span className="font-semibold text-slate-900">
+            {Math.min((page - 1) * limit + mainProducts.length, totalCount)}
+          </span>{' '}
+          of <span className="font-semibold text-slate-900">{totalCount}</span> main APIs
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-slate-500 font-semibold">Show:</span>
+          <select
+            value={limit}
+            onChange={(e) => {
+              setLimit(Number(e.target.value));
+              setPage(1);
+            }}
+            className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-hidden focus:border-emerald-500 cursor-pointer shadow-2xs"
+          >
+            <option value={25}>25 items</option>
+            <option value={50}>50 items</option>
+            <option value={100}>100 items</option>
+            <option value={250}>250 items</option>
+            <option value={500}>500 items</option>
+            <option value={1000}>All items (1000)</option>
+          </select>
+        </div>
+      </div>
 
       {/* Main Products Table */}
       <Card>
@@ -309,6 +361,64 @@ export const MainProducts = () => {
             </table>
           </div>
         )}
+
+        {/* Pagination Bar */}
+        {totalCount > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 mt-4 border-t border-slate-100">
+            <div className="text-xs text-slate-500 font-medium">
+              Page <span className="font-bold text-slate-800">{page}</span> of{' '}
+              <span className="font-bold text-slate-800">{totalPages}</span> ({totalCount} total items)
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                icon={ChevronLeft}
+              >
+                Previous
+              </Button>
+
+              <div className="flex items-center gap-1">
+                {getPaginationItems().map((item, idx) =>
+                  item === '...' ? (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="w-8 h-8 flex items-center justify-center text-xs font-bold text-slate-400 select-none"
+                    >
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setPage(item)}
+                      className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        item === page
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
+              </div>
+
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                <span>Next</span>
+                <ChevronRight className="w-4 h-4 ml-1 inline shrink-0" />
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Create / Edit Modal */}
@@ -333,41 +443,13 @@ export const MainProducts = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                Category
-              </label>
-              <div className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-emerald-800 flex items-center justify-between">
-                <span>API Impurities & Reference Standards</span>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                URL Slug (Optional)
-              </label>
-              <input
-                type="text"
-                value={form.p_link}
-                onChange={(e) => setForm({ ...form, p_link: e.target.value })}
-                placeholder="Auto-generated if empty"
-                className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-              />
-            </div>
-          </div>
-
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              Description / Scientific Overview
+              Category
             </label>
-            <textarea
-              rows={3}
-              value={form.content}
-              onChange={(e) => setForm({ ...form, content: e.target.value })}
-              placeholder="Therapeutic category, clinical description, purity profile..."
-              className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-            />
+            <div className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-emerald-800 flex items-center justify-between">
+              <span>API Impurities & Reference Standards</span>
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">

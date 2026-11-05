@@ -138,6 +138,19 @@ export const Products = () => {
     fetchProducts();
   };
 
+  const getPaginationItems = () => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (page <= 4) {
+      return [1, 2, 3, 4, 5, '...', totalPages];
+    }
+    if (page >= totalPages - 3) {
+      return [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, '...', page - 1, page, page + 1, '...', totalPages];
+  };
+
   const handleDelete = async () => {
     if (!deleteProduct) return;
     try {
@@ -347,21 +360,27 @@ export const Products = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm table-fixed">
+              <colgroup>
+                <col className="w-[40%]" />
+                <col className="w-[20%]" />
+                <col className="w-[20%]" />
+                <col className="w-[20%]" />
+              </colgroup>
               <thead>
                 <tr className="border-b border-slate-100 text-slate-500 text-xs uppercase tracking-wider bg-slate-50/50">
-                  <th className="py-3 px-3 font-semibold">Impurity / Compound</th>
-                  <th className="py-3 px-3 font-semibold">Parent API</th>
-                  <th className="py-3 px-3 font-semibold">Specifications</th>
-                  <th className="py-3 px-3 font-semibold text-right">Actions</th>
+                  <th className="w-[40%] py-3 px-3 font-semibold">Impurity / Compound</th>
+                  <th className="w-[20%] py-3 px-3 font-semibold">Parent API</th>
+                  <th className="w-[20%] py-3 px-3 font-semibold">Specifications</th>
+                  <th className="w-[20%] py-3 px-3 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {products.map((prod) => (
                   <tr key={prod._id} className="hover:bg-slate-50/70 transition-colors">
                     {/* Impurity Name & Badges */}
-                    <td className="py-4 px-3 max-w-xs">
-                      <div className="font-bold text-slate-900 text-sm leading-snug">
+                    <td className="w-[40%] py-4 px-3 align-top">
+                      <div className="font-bold text-slate-900 text-sm leading-snug break-words">
                         {prod.name}
                       </div>
                       <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
@@ -387,30 +406,30 @@ export const Products = () => {
                     </td>
 
                     {/* Parent API */}
-                    <td className="py-4 px-3 text-xs text-slate-700">
-                      <div className="font-semibold text-slate-900">
+                    <td className="w-[20%] py-4 px-3 text-xs text-slate-700 align-top">
+                      <div className="font-semibold text-slate-900 break-words">
                         {prod.mainProduct?.heading || '—'}
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">
+                      <div className="text-[11px] text-slate-400 mt-0.5 truncate">
                         API Family: {prod.mainProduct?.category?.categoryName || 'API'}
                       </div>
                     </td>
 
                     {/* Technical Specifications */}
-                    <td className="py-4 px-3 text-xs font-mono-code text-slate-600">
-                      <div>
+                    <td className="w-[20%] py-4 px-3 text-xs font-mono-code text-slate-600 align-top">
+                      <div className="truncate" title={prod.specifications?.casNumber || 'N/A'}>
                         CAS: <span className="text-slate-800 font-semibold">{prod.specifications?.casNumber || 'N/A'}</span>
                       </div>
-                      <div>
+                      <div className="truncate" title={prod.specifications?.catalogueNumber || 'N/A'}>
                         Cat #: <span className="text-slate-700">{prod.specifications?.catalogueNumber || 'N/A'}</span>
                       </div>
-                      <div className="text-[11px] text-emerald-700 font-medium">
+                      <div className="text-[11px] text-emerald-700 font-medium truncate">
                         Purity: {prod.specifications?.purity || '>98%'}
                       </div>
                     </td>
 
                     {/* Actions */}
-                    <td className="py-4 px-3 text-right">
+                    <td className="w-[20%] py-4 px-3 text-right align-top">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
@@ -464,19 +483,29 @@ export const Products = () => {
               </Button>
 
               <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => (
-                  <button
-                    key={pNum}
-                    type="button"
-                    onClick={() => setPage(pNum)}
-                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all cursor-pointer ${pNum === page
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                {getPaginationItems().map((item, idx) =>
+                  item === '...' ? (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="w-8 h-8 flex items-center justify-center text-xs font-bold text-slate-400 select-none"
+                    >
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setPage(item)}
+                      className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        item === page
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
                       }`}
-                  >
-                    {pNum}
-                  </button>
-                ))}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
               </div>
 
               <Button

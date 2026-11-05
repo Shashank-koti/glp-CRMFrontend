@@ -359,34 +359,40 @@ export const Dashboard = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="w-full text-left text-sm table-fixed">
+                <colgroup>
+                  <col className="w-1/4" />
+                  <col className="w-1/4" />
+                  <col className="w-1/4" />
+                  <col className="w-1/4" />
+                </colgroup>
                 <thead>
                   <tr className="border-b border-slate-100 text-slate-500 text-xs uppercase tracking-wider bg-slate-50/50">
-                    <th className="py-2.5 px-3 font-semibold">Impurity / Standard</th>
-                    <th className="py-2.5 px-3 font-semibold">Parent API</th>
-                    <th className="py-2.5 px-3 font-semibold">CAS / Cat #</th>
-                    <th className="py-2.5 px-3 font-semibold text-right">Actions</th>
+                    <th className="w-1/4 py-2.5 px-3 font-semibold">Impurity / Standard</th>
+                    <th className="w-1/4 py-2.5 px-3 font-semibold">Parent API</th>
+                    <th className="w-1/4 py-2.5 px-3 font-semibold">CAS / Cat #</th>
+                    <th className="w-1/4 py-2.5 px-3 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {recentProducts.map((prod) => (
                     <tr key={prod._id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="py-3.5 px-3">
-                        <div className="font-semibold text-slate-900">{prod.name}</div>
+                      <td className="w-1/4 py-3.5 px-3">
+                        <div className="font-semibold text-slate-900 truncate" title={prod.name}>{prod.name}</div>
                         <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
-                          <span className="text-emerald-700 font-medium">{prod.productType || 'API Impurity'}</span>
+                          <span className="text-emerald-700 font-medium truncate">{prod.productType || 'API Impurity'}</span>
                           <span>•</span>
-                          <span className="text-slate-600">{prod.availability || 'In Stock'}</span>
+                          <span className="text-slate-600 shrink-0">{prod.availability || 'In Stock'}</span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-3 text-slate-600 text-xs">
+                      <td className="w-1/4 py-3.5 px-3 text-slate-600 text-xs truncate" title={prod.mainProduct?.heading || '—'}>
                         {prod.mainProduct?.heading || '—'}
                       </td>
-                      <td className="py-3.5 px-3 text-xs font-mono-code text-slate-600">
-                        <div>{prod.specifications?.casNumber || 'No CAS'}</div>
-                        <div className="text-[11px] text-slate-400">{prod.specifications?.catalogueNumber}</div>
+                      <td className="w-1/4 py-3.5 px-3 text-xs font-mono-code text-slate-600">
+                        <div className="truncate">{prod.specifications?.casNumber || 'No CAS'}</div>
+                        <div className="text-[11px] text-slate-400 truncate">{prod.specifications?.catalogueNumber || '—'}</div>
                       </td>
-                      <td className="py-3.5 px-3 text-right">
+                      <td className="w-1/4 py-3.5 px-3 text-right">
                         <Link
                           to={`/products/edit/${prod._id}`}
                           className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 hover:underline"
