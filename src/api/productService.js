@@ -76,6 +76,7 @@ export const productService = {
     formData.append('file', file);
     formData.append('image', file);
     formData.append('identifier', identifier);
+    formData.append('name', identifier);
     const response = await apiClient.post('/crm/products/upload-image', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });

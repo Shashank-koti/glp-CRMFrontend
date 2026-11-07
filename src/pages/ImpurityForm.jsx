@@ -273,11 +273,6 @@ export const ImpurityForm = () => {
       return;
     }
 
-    if (!imageFile && !imagePreview && !form.image) {
-      toast.error('Chemical structure image is required (Section 1).');
-      return;
-    }
-
     // SECTION 2 VALIDATION: Technical & Chemical Specifications
     if (!specifications.casNumber?.trim()) {
       toast.error('CAS Number is required in Technical Specifications (Section 2).');
@@ -354,12 +349,6 @@ export const ImpurityForm = () => {
           setSubmitting(false);
           return;
         }
-      }
-
-      if (!finalImageUrl) {
-        toast.error('Chemical structure image is required.');
-        setSubmitting(false);
-        return;
       }
 
       const parsedAltCas = typeof specifications.alternateCas === 'string'
@@ -507,8 +496,8 @@ export const ImpurityForm = () => {
       {/* SECTION 1: Core Impurity Identification */}
       <Card>
         <CardHeader
-          title="1. Chemical & Impurity Identification *"
-          subtitle="Impurity standard name, chemical structure image, and commercial availability (All required)"
+          title="1. Chemical & Impurity Identification"
+          subtitle="Impurity standard name, commercial availability, and optional chemical structure image"
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -586,17 +575,15 @@ export const ImpurityForm = () => {
           {/* Chemical Structure Image Upload */}
           <div className="md:col-span-2">
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 flex items-center justify-between">
-              <span>Chemical Structure Image *</span>
-              <span className="text-[10px] text-amber-700 font-semibold normal-case">
-                Compulsory chemical structure
+              <span>Chemical Structure Image (Optional)</span>
+              <span className="text-[10px] text-slate-500 font-normal normal-case">
+                Upload only if available
               </span>
             </label>
             <div className="flex flex-col sm:flex-row items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
               {/* Preview Box */}
               <div
-                className={`w-32 h-32 rounded-xl bg-white border ${
-                  !imagePreview ? 'border-amber-300 ring-2 ring-amber-100' : 'border-slate-200'
-                } flex items-center justify-center overflow-hidden shrink-0 shadow-2xs relative group`}
+                className="w-32 h-32 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shrink-0 shadow-2xs relative group"
               >
                 {imagePreview ? (
                   <>
@@ -617,8 +604,8 @@ export const ImpurityForm = () => {
                 ) : (
                   <div className="flex flex-col items-center justify-center text-slate-400 p-2 text-center">
                     <ImageIcon className="w-8 h-8 stroke-1 text-slate-300 mb-1" />
-                    <span className="text-[10px] font-semibold text-amber-700 leading-tight">
-                      Structure Required *
+                    <span className="text-[10px] font-medium text-slate-400 leading-tight">
+                      No Image
                     </span>
                   </div>
                 )}
@@ -629,7 +616,7 @@ export const ImpurityForm = () => {
                 <div className="flex flex-wrap items-center gap-3">
                   <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all cursor-pointer shadow-2xs">
                     <Upload className="w-4 h-4 text-emerald-600" />
-                    <span>{imagePreview ? 'Change Image File' : 'Upload Image File *'}</span>
+                    <span>{imagePreview ? 'Change Image File' : 'Upload Image File'}</span>
                     <input
                       type="file"
                       accept="image/png,image/jpeg,image/webp,image/svg+xml"
@@ -664,9 +651,8 @@ export const ImpurityForm = () => {
                     )}
                   </div>
                 ) : (
-                  <div className="text-xs text-amber-700 font-medium flex items-center gap-1.5">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                    <span>Chemical structure image is compulsory when adding an impurity.</span>
+                  <div className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                    <span>No chemical structure attached. (Optional)</span>
                   </div>
                 )}
 
