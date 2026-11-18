@@ -46,8 +46,8 @@ export const Dashboard = () => {
         setLoading(true);
         const [catsRes, mainRes, prodsRes, inqRes, clientsRes] = await Promise.allSettled([
           categoryService.getCategories(),
-          mainProductService.getMainProducts({ limit: 100 }),
-          productService.getProducts({ limit: 100 }),
+          mainProductService.getMainProducts({ limit: 'all' }),
+          productService.getProducts({ limit: 'all' }),
           inquiryService.getInquiries({ limit: 5 }),
           clientService.getClientStats(),
         ]);
@@ -139,11 +139,6 @@ export const Dashboard = () => {
           <Link to="/main-products">
             <Button size="sm" variant="secondary">
               Main APIs
-            </Button>
-          </Link>
-          <Link to="/documents">
-            <Button size="sm" variant="outline" icon={FileCheck2}>
-              Documents Hub
             </Button>
           </Link>
           <Link to="/clients">
@@ -263,9 +258,9 @@ export const Dashboard = () => {
           title="Analytical Compliance & Document Readiness"
           subtitle="MSDS, Draft COA, and Batch COA availability for client downloads"
           action={
-            <Link to="/documents">
-              <Button size="sm" variant="outline" icon={FileCheck2}>
-                Open Documents Hub
+            <Link to="/products">
+              <Button size="sm" variant="outline" icon={Package}>
+                Manage in Impurities
               </Button>
             </Link>
           }

@@ -7,7 +7,6 @@ import {
   Package,
   Users,
   Inbox,
-  FileCheck2,
   LogOut,
   ShieldCheck,
   ExternalLink,
@@ -28,7 +27,6 @@ export const Sidebar = ({ isOpen, onClose }) => {
   const crmNavItems = [
     { label: 'Clients & Accounts', path: '/clients', icon: Users },
     { label: 'Customer Inquiries', path: '/inquiries', icon: Inbox },
-    { label: 'Documents Hub', path: '/documents', icon: FileCheck2 },
   ];
 
   return (

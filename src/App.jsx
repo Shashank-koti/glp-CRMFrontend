@@ -11,7 +11,6 @@ import MainProducts from './pages/MainProducts';
 import MainProductImpurities from './pages/MainProductImpurities';
 import ImpurityForm from './pages/ImpurityForm';
 import Products from './pages/Products';
-import DocumentsHub from './pages/DocumentsHub';
 import Inquiries from './pages/Inquiries';
 import Clients from './pages/Clients';
 
@@ -98,15 +97,6 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ImpurityForm />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/documents"
-              element={
-                <ProtectedRoute>
-                  <DocumentsHub />
                 </ProtectedRoute>
               }
             />

@@ -397,13 +397,13 @@ export const ImpurityForm = () => {
         toast.success(`Created impurity '${form.name}'.`);
       }
 
-      // Handle PDF uploads if selected (stores to Cloudinary)
+      // Handle PDF uploads if selected (stores to VPS Server)
       const uploadPromises = [];
       if (docFiles.msds) {
         uploadPromises.push(
           productService
             .uploadProductDocument(targetId, 'msds', docFiles.msds)
-            .then(() => toast.success('MSDS document stored to Cloudinary.'))
+            .then(() => toast.success('MSDS document stored to server.'))
             .catch(() => toast.error('Failed to upload MSDS.'))
         );
       }
@@ -411,7 +411,7 @@ export const ImpurityForm = () => {
         uploadPromises.push(
           productService
             .uploadProductDocument(targetId, 'draft-coa', docFiles.draftCoa)
-            .then(() => toast.success('Draft COA stored to Cloudinary.'))
+            .then(() => toast.success('Draft COA stored to server.'))
             .catch(() => toast.error('Failed to upload Draft COA.'))
         );
       }
@@ -419,7 +419,7 @@ export const ImpurityForm = () => {
         uploadPromises.push(
           productService
             .uploadProductDocument(targetId, 'coa', docFiles.coa)
-            .then(() => toast.success('Final COA stored to Cloudinary.'))
+            .then(() => toast.success('Final COA stored to server.'))
             .catch(() => toast.error('Failed to upload Final COA.'))
         );
       }
@@ -976,9 +976,13 @@ export const ImpurityForm = () => {
                     <span className="truncate text-slate-700 text-[11px]">
                       {existingDocs.msds.fileName || 'Attached MSDS'}
                     </span>
-                    {existingDocs.msds.url.includes('cloudinary.com') && (
+                    {existingDocs.msds.url.includes('cloudinary.com') ? (
                       <span className="text-[9px] font-semibold px-1 py-0.2 rounded bg-sky-50 text-sky-700 border border-sky-200">
                         Cloudinary
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-semibold px-1 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        Server (VPS)
                       </span>
                     )}
                   </div>
@@ -1035,9 +1039,13 @@ export const ImpurityForm = () => {
                     <span className="truncate text-slate-700 text-[11px]">
                       {existingDocs.draftCoa.fileName || 'Attached Draft COA'}
                     </span>
-                    {existingDocs.draftCoa.url.includes('cloudinary.com') && (
+                    {existingDocs.draftCoa.url.includes('cloudinary.com') ? (
                       <span className="text-[9px] font-semibold px-1 py-0.2 rounded bg-sky-50 text-sky-700 border border-sky-200">
                         Cloudinary
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-semibold px-1 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        Server (VPS)
                       </span>
                     )}
                   </div>
@@ -1094,9 +1102,13 @@ export const ImpurityForm = () => {
                     <span className="truncate text-slate-700 text-[11px]">
                       {existingDocs.coa.fileName || 'Attached Batch COA'}
                     </span>
-                    {existingDocs.coa.url.includes('cloudinary.com') && (
+                    {existingDocs.coa.url.includes('cloudinary.com') ? (
                       <span className="text-[9px] font-semibold px-1 py-0.2 rounded bg-sky-50 text-sky-700 border border-sky-200">
                         Cloudinary
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-semibold px-1 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        Server (VPS)
                       </span>
                     )}
                   </div>

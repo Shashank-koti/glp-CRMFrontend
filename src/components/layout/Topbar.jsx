@@ -17,7 +17,6 @@ export const Topbar = ({ onToggleSidebar }) => {
     if (path === '/products/new') return 'New SubProduct / Impurity Registration';
     if (path.startsWith('/products/edit')) return 'Edit SubProduct / Impurity';
     if (path.startsWith('/products')) return 'SubProducts Catalog & Standards';
-    if (path.startsWith('/documents')) return 'Compliance & Regulatory Documents Hub';
     if (path.startsWith('/inquiries')) return 'Customer Inquiries & Quote Requests';
     if (path.startsWith('/clients')) return 'Client Directory & Registered Accounts';
     return 'CRM Administration';
