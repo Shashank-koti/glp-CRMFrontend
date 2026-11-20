@@ -56,15 +56,15 @@ export const ImpurityForm = () => {
     iupacName: '',
     molecularFormula: '',
     molecularWeight: '',
-    purity: '>98%',
+    purity: '>95%',
     appearance: '',
-    storage: 'Store at 2°C to 8°C in dark, dry place',
-    shippingConditions: 'Ambient',
+    storage: 'Store at 2°C to 8°C. Protect from light and moisture',
+    shippingConditions: 'Ambient Temperature',
   });
 
   const [pricingTiers, setPricingTiers] = useState([
-    { size: '50 mg', price: 250, description: 'Analytical testing scale', isBestValue: false },
-    { size: '100 mg', price: 450, description: 'Standard research pack', isBestValue: true },
+    { size: '50 mg', price: 250, isBestValue: false },
+    { size: '100 mg', price: 450, isBestValue: true },
   ]);
 
   // Document Files to upload with multipart
@@ -193,7 +193,7 @@ export const ImpurityForm = () => {
   const addPricingTier = () => {
     setPricingTiers([
       ...pricingTiers,
-      { size: '', price: '', description: '', isBestValue: false },
+      { size: '', price: '', isBestValue: false },
     ]);
   };
 
@@ -890,19 +890,6 @@ export const ImpurityForm = () => {
                   onChange={(e) => updatePricingTier(idx, 'price', e.target.value)}
                   placeholder="450"
                   className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-emerald-700 font-bold focus:outline-hidden focus:border-emerald-500"
-                />
-              </div>
-
-              <div className="flex-1">
-                <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase">
-                  Usage Note
-                </label>
-                <input
-                  type="text"
-                  value={tier.description}
-                  onChange={(e) => updatePricingTier(idx, 'description', e.target.value)}
-                  placeholder="e.g. Method validation standard"
-                  className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-hidden focus:border-emerald-500"
                 />
               </div>
 
